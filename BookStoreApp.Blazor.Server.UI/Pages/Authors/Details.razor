@@ -34,19 +34,24 @@
     }
     else
     {
-        foreach(var book in Author.Books)
-        {
-            <div class="card" style="width: 18rem;">
-              <img src="@book.Image" class="card-img-top" alt="@book.Title">
-              <div class="card-body">
-                <h5 class="card-title">@book.Title - @book.Price.ToString("C")</h5>
-                <p class="card-text"></p>
-                <a href="#" class="btn btn-primary">View Book</a>
-              </div>
-            </div>
-        }
+        <div class="row">
+            @foreach(var book in Author.Books)
+            {
+                <div class="col-3">
+                    <div class="card" style="width: 18rem;">
+                      <img src="@book.Image" class="card-img-top" alt="@book.Title" style="width:286px; height:164px" >
+                      <div class="card-body">
+                        <h5 class="card-title">@book.Title - @book.Price.ToString("C")</h5>
+                        <p class="card-text"></p>
+                        <a href="/books/details/@book.Id" class="btn btn-primary">View Book</a>
+                      </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
     }
-
+    <br/>
     <button @onclick="GoToEdit" class="btn btn-warning">
         <span class="oi oi-pencil"></span>
         Edit Author
