@@ -1,0 +1,54 @@
+﻿@page "/users/login"
+@inject IAuthenticationService authService
+@inject NavigationManager navManager
+
+<h3>Login</h3>
+
+<div>
+    <EditForm Model="LoginModel" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <InputText class="form-control" @bind-Value="LoginModel.Email" />
+            <ValidationMessage For="@(() => LoginModel.Email)" />
+        </div>
+        <br/>
+        <div class="form-group">
+            <label for="email">Password</label>
+            <InputText class="form-control" type="password" @bind-Value="LoginModel.Password" />
+            <ValidationMessage For="@(() => LoginModel.Password)" />
+        </div>
+        <br/>
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </EditForm>
+
+</div>
+
+@code {
+    LoginUserDto LoginModel = new LoginUserDto();
+    string message = string.Empty;
+    public async Task HandleLogin()
+    {
+        try
+        {
+            var response = await authService.AuthenticateAsync(LoginModel);
+
+            if (response)
+            {        
+                navManager.NavigateTo("/");
+            }
+            
+            message = "Invalid Credentials, Please Try Again";
+        } 
+        catch(ApiException ex)
+        {
+            if(ex.StatusCode >= 200 && ex.StatusCode <= 299)
+            {
+                
+            }
+
+            message = ex.Response;
+        }   
+    }
+}

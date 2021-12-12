@@ -1,0 +1,68 @@
+﻿@page "/authors/update/{id:int}"
+@inject IAuthorService authorService
+@inject NavigationManager navManager
+@attribute [Authorize(Roles = Roles.Administrator)]
+
+<h3>Edit Author</h3>
+
+<EditForm Model="Author" OnValidSubmit="HandleUpdateAuthor">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="firstname">First Name</label>
+        <InputText @bind-Value="Author.FirstName" class="form-control" id="firstname" />
+        <ValidationMessage For="@(() => Author.FirstName)" />
+    </div>
+    <br/>
+    <div class="form-group">
+        <label for="lastname">Last Name</label>
+        <InputText @bind-Value="Author.LastName" class="form-control" id="lastname" />
+        <ValidationMessage For="@(() => Author.LastName)" />
+    </div>
+    <br/>
+    <div class="form-group">
+        <label for="bio">Biography</label>
+        <InputTextArea @bind-Value="Author.Bio" class="form-control" id="bio" />
+        <ValidationMessage For="@(() => Author.Bio)" />
+    </div>
+       <br/>
+
+     <button class="btn btn-primary" type="submit">
+        <span class="oi oi-pencil"></span>
+        Update Author
+    </button>
+    <button @onclick="BackToList" class="btn btn-outline-secondary" type="button">
+        <span class="oi oi-media-skip-backward"></span>
+        Back To List
+    </button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private AuthorUpdateDto Author = new AuthorUpdateDto();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var response = await authorService.GetForUpdate(id);
+        if (response.Success)
+        {
+            Author = response.Data;
+        }
+    }
+
+    private async Task HandleUpdateAuthor()
+    {
+        var response = await authorService.Edit(id, Author);
+        if (response.Success)
+        {
+            BackToList();
+        }
+    }
+
+    private void BackToList()
+    {
+        navManager.NavigateTo("/authors/");
+    }
+}
