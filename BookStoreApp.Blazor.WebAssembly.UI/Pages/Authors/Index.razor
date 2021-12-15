@@ -33,7 +33,20 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach(var author in Authors)
+                <Virtualize Items="@Authors" Context="author" ItemSize="25">
+                    <tr>
+                        <td>@author.FirstName</td>
+                        <td>@author.LastName</td>
+                        <td>
+                            <a class="btn btn-primary" href="/authors/details/@author.Id"> <span class="oi oi-book" aria-hidden="true"></span> Details </a>
+                            <AuthorizeView Roles="Administrator">
+                                <a class="btn btn-warning" href="/authors/update/@author.Id"> <span class="oi oi-pencil" aria-hidden="true"></span> Edit </a>
+                                <button class="btn btn-danger" @onclick=@(() => Delete(@author.Id))> <span class="oi oi-delete" aria-hidden="true"></span> Delete </button>
+                            </AuthorizeView>
+                        </td>
+                    </tr>
+                </Virtualize>
+                @*@foreach(var author in Authors)
                 {
                     <tr>
                         <td>@author.FirstName</td>
@@ -46,7 +59,7 @@ else
                             </AuthorizeView>
                         </td>
                     </tr>
-                }
+                }*@
             </tbody>
         </table>
     }
