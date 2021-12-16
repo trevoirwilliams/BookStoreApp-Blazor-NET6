@@ -1,0 +1,63 @@
+﻿@inject IAuthorService authorService
+@inject IJSRuntime js
+
+<table class="table table-responsive">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <Virtualize ItemsProvider="LoadAuthors" Context="author">
+            <tr>
+                <td>@author.FirstName</td>
+                <td>@author.LastName</td>
+                <td>
+                    <a class="btn btn-primary" href="/authors/details/@author.Id"> <span class="oi oi-book" aria-hidden="true"></span> Details </a>
+                    <AuthorizeView Roles="Administrator">
+                        <a class="btn btn-warning" href="/authors/update/@author.Id"> <span class="oi oi-pencil" aria-hidden="true"></span> Edit </a>
+                        <button class="btn btn-danger"  @onclick="() => OnDeleted.InvokeAsync(@author.Id)"> <span class="oi oi-delete" aria-hidden="true"></span> Delete </button>
+                    </AuthorizeView>
+                </td>
+            </tr>
+        </Virtualize>
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public List<AuthorReadOnlyDto> Authors { get; set; }
+
+    [Parameter]
+    public int TotalSize { get; set; }
+
+    [Parameter]
+    public EventCallback<QueryParameters> OnScroll { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnDeleted { get; set; }
+
+    private async ValueTask<ItemsProviderResult<AuthorReadOnlyDto>> LoadAuthors(ItemsProviderRequest request)
+    {
+        var authorNum = Math.Min(request.Count, TotalSize - request.StartIndex);
+        await OnScroll.InvokeAsync(new QueryParameters
+        {
+            StartIndex = request.StartIndex,
+            PageSize = authorNum == 0 ? request.Count : authorNum
+        });
+        return new ItemsProviderResult<AuthorReadOnlyDto>(Authors, TotalSize);
+    }
+
+    private async ValueTask<ItemsProviderResult<int>> Delete(int bookId)
+    {
+        await OnDelete.InvokeAsync(bookId);
+        return new ItemsProviderResult<int>(null, bookId);
+    }
+
+    public void RefreshMe()
+    {
+        StateHasChanged();
+    }
+}
