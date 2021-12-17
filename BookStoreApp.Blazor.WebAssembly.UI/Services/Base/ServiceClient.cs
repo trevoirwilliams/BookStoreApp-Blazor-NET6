@@ -151,24 +151,24 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     public partial class Client : IClient
     {
         private System.Net.Http.HttpClient _httpClient;
-        private System.Lazy<System.Text.Json.JsonSerializerOptions> _settings;
+        private System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings;
 
         public Client(System.Net.Http.HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _settings = new System.Lazy<System.Text.Json.JsonSerializerOptions>(CreateSerializerSettings);
+            _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings);
         }
 
-        private System.Text.Json.JsonSerializerOptions CreateSerializerSettings()
+        private Newtonsoft.Json.JsonSerializerSettings CreateSerializerSettings()
         {
-            var settings = new System.Text.Json.JsonSerializerOptions();
+            var settings = new Newtonsoft.Json.JsonSerializerSettings();
             UpdateJsonSerializerSettings(settings);
             return settings;
         }
 
-        protected System.Text.Json.JsonSerializerOptions JsonSerializerSettings { get { return _settings.Value; } }
+        protected Newtonsoft.Json.JsonSerializerSettings JsonSerializerSettings { get { return _settings.Value; } }
 
-        partial void UpdateJsonSerializerSettings(System.Text.Json.JsonSerializerOptions settings);
+        partial void UpdateJsonSerializerSettings(Newtonsoft.Json.JsonSerializerSettings settings);
 
         partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, string url);
         partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
@@ -195,7 +195,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    var content_ = new System.Net.Http.StringContent(System.Text.Json.JsonSerializer.Serialize(body, _settings.Value));
+                    var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(body, _settings.Value));
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("POST");
@@ -266,7 +266,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    var content_ = new System.Net.Http.StringContent(System.Text.Json.JsonSerializer.Serialize(body, _settings.Value));
+                    var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(body, _settings.Value));
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("POST");
@@ -426,7 +426,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    var content_ = new System.Net.Http.StringContent(System.Text.Json.JsonSerializer.Serialize(body, _settings.Value));
+                    var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(body, _settings.Value));
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("POST");
@@ -659,7 +659,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    var content_ = new System.Net.Http.StringContent(System.Text.Json.JsonSerializer.Serialize(body, _settings.Value));
+                    var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(body, _settings.Value));
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("PUT");
@@ -885,7 +885,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    var content_ = new System.Net.Http.StringContent(System.Text.Json.JsonSerializer.Serialize(body, _settings.Value));
+                    var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(body, _settings.Value));
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("POST");
@@ -1118,7 +1118,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    var content_ = new System.Net.Http.StringContent(System.Text.Json.JsonSerializer.Serialize(body, _settings.Value));
+                    var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(body, _settings.Value));
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("PUT");
@@ -1267,10 +1267,10 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
                 var responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    var typedBody = System.Text.Json.JsonSerializer.Deserialize<T>(responseText, JsonSerializerSettings);
+                    var typedBody = Newtonsoft.Json.JsonConvert.DeserializeObject<T>(responseText, JsonSerializerSettings);
                     return new ObjectResponseResult<T>(typedBody, responseText);
                 }
-                catch (System.Text.Json.JsonException exception)
+                catch (Newtonsoft.Json.JsonException exception)
                 {
                     var message = "Could not deserialize the response body string as " + typeof(T).FullName + ".";
                     throw new ApiException(message, (int)response.StatusCode, responseText, headers, exception);
@@ -1281,12 +1281,15 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
                 try
                 {
                     using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    using (var streamReader = new System.IO.StreamReader(responseStream))
+                    using (var jsonTextReader = new Newtonsoft.Json.JsonTextReader(streamReader))
                     {
-                        var typedBody = await System.Text.Json.JsonSerializer.DeserializeAsync<T>(responseStream, JsonSerializerSettings, cancellationToken).ConfigureAwait(false);
+                        var serializer = Newtonsoft.Json.JsonSerializer.Create(JsonSerializerSettings);
+                        var typedBody = serializer.Deserialize<T>(jsonTextReader);
                         return new ObjectResponseResult<T>(typedBody, string.Empty);
                     }
                 }
-                catch (System.Text.Json.JsonException exception)
+                catch (Newtonsoft.Json.JsonException exception)
                 {
                     var message = "Could not deserialize the response body stream as " + typeof(T).FullName + ".";
                     throw new ApiException(message, (int)response.StatusCode, string.Empty, headers, exception);
@@ -1343,18 +1346,17 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AuthorCreateDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("firstName")]
+        [Newtonsoft.Json.JsonProperty("firstName", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(50)]
         public string FirstName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("lastName")]
+        [Newtonsoft.Json.JsonProperty("lastName", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(50)]
         public string LastName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("bio")]
+        [Newtonsoft.Json.JsonProperty("bio", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.StringLength(250)]
         public string Bio { get; set; }
 
@@ -1363,20 +1365,19 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AuthorDetailsDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Id { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("firstName")]
+        [Newtonsoft.Json.JsonProperty("firstName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FirstName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("lastName")]
+        [Newtonsoft.Json.JsonProperty("lastName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string LastName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("bio")]
+        [Newtonsoft.Json.JsonProperty("bio", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Bio { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("books")]
+        [Newtonsoft.Json.JsonProperty("books", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<BookReadOnlyDto> Books { get; set; }
 
     }
@@ -1384,17 +1385,16 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AuthorReadOnlyDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Id { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("firstName")]
+        [Newtonsoft.Json.JsonProperty("firstName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FirstName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("lastName")]
+        [Newtonsoft.Json.JsonProperty("lastName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string LastName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("bio")]
+        [Newtonsoft.Json.JsonProperty("bio", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Bio { get; set; }
 
     }
@@ -1402,11 +1402,10 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AuthorReadOnlyDtoVirtualizeResponse
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("items")]
+        [Newtonsoft.Json.JsonProperty("items", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<AuthorReadOnlyDto> Items { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("totalSize")]
+        [Newtonsoft.Json.JsonProperty("totalSize", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int TotalSize { get; set; }
 
     }
@@ -1414,21 +1413,20 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AuthorUpdateDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Id { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("firstName")]
+        [Newtonsoft.Json.JsonProperty("firstName", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(50)]
         public string FirstName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("lastName")]
+        [Newtonsoft.Json.JsonProperty("lastName", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(50)]
         public string LastName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("bio")]
+        [Newtonsoft.Json.JsonProperty("bio", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.StringLength(250)]
         public string Bio { get; set; }
 
@@ -1437,14 +1435,13 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AuthResponse
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("userId")]
+        [Newtonsoft.Json.JsonProperty("userId", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string UserId { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("token")]
+        [Newtonsoft.Json.JsonProperty("token", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Token { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("email")]
+        [Newtonsoft.Json.JsonProperty("email", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Email { get; set; }
 
     }
@@ -1452,35 +1449,34 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class BookCreateDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("authorId")]
+        [Newtonsoft.Json.JsonProperty("authorId", Required = Newtonsoft.Json.Required.Always)]
         public int AuthorId { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("title")]
+        [Newtonsoft.Json.JsonProperty("title", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(50)]
         public string Title { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("year")]
+        [Newtonsoft.Json.JsonProperty("year", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Range(1000, 2147483647)]
         public int Year { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("isbn")]
+        [Newtonsoft.Json.JsonProperty("isbn", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Isbn { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("summary")]
+        [Newtonsoft.Json.JsonProperty("summary", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.StringLength(250, MinimumLength = 10)]
         public string Summary { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("imageData")]
+        [Newtonsoft.Json.JsonProperty("imageData", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string ImageData { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("originalImageName")]
+        [Newtonsoft.Json.JsonProperty("originalImageName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string OriginalImageName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("price")]
+        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Range(0D, 2147483647D)]
         public double Price { get; set; }
 
@@ -1489,32 +1485,31 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class BookDetailsDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Id { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("title")]
+        [Newtonsoft.Json.JsonProperty("title", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Title { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("year")]
+        [Newtonsoft.Json.JsonProperty("year", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Year { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("isbn")]
+        [Newtonsoft.Json.JsonProperty("isbn", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Isbn { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("summary")]
+        [Newtonsoft.Json.JsonProperty("summary", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Summary { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("image")]
+        [Newtonsoft.Json.JsonProperty("image", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Image { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("price")]
+        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double Price { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("authorId")]
+        [Newtonsoft.Json.JsonProperty("authorId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int AuthorId { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("authorName")]
+        [Newtonsoft.Json.JsonProperty("authorName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string AuthorName { get; set; }
 
     }
@@ -1522,23 +1517,22 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class BookReadOnlyDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Id { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("title")]
+        [Newtonsoft.Json.JsonProperty("title", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Title { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("image")]
+        [Newtonsoft.Json.JsonProperty("image", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Image { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("price")]
+        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double Price { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("authorId")]
+        [Newtonsoft.Json.JsonProperty("authorId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int AuthorId { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("authorName")]
+        [Newtonsoft.Json.JsonProperty("authorName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string AuthorName { get; set; }
 
     }
@@ -1546,11 +1540,10 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class BookReadOnlyDtoVirtualizeResponse
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("items")]
+        [Newtonsoft.Json.JsonProperty("items", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<BookReadOnlyDto> Items { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("totalSize")]
+        [Newtonsoft.Json.JsonProperty("totalSize", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int TotalSize { get; set; }
 
     }
@@ -1558,41 +1551,40 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class BookUpdateDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Id { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("authorId")]
+        [Newtonsoft.Json.JsonProperty("authorId", Required = Newtonsoft.Json.Required.Always)]
         public int AuthorId { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("title")]
+        [Newtonsoft.Json.JsonProperty("title", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(50)]
         public string Title { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("year")]
+        [Newtonsoft.Json.JsonProperty("year", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Range(1800, 2147483647)]
         public int Year { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("isbn")]
+        [Newtonsoft.Json.JsonProperty("isbn", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Isbn { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("summary")]
+        [Newtonsoft.Json.JsonProperty("summary", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.StringLength(250, MinimumLength = 10)]
         public string Summary { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("image")]
+        [Newtonsoft.Json.JsonProperty("image", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Image { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("imageData")]
+        [Newtonsoft.Json.JsonProperty("imageData", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string ImageData { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("originalImageName")]
+        [Newtonsoft.Json.JsonProperty("originalImageName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string OriginalImageName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("price")]
+        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Range(0D, 2147483647D)]
         public double Price { get; set; }
 
@@ -1601,12 +1593,11 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class LoginUserDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("email")]
+        [Newtonsoft.Json.JsonProperty("email", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Email { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("password")]
+        [Newtonsoft.Json.JsonProperty("password", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Password { get; set; }
 
@@ -1615,24 +1606,23 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.15.4.0 (NJsonSchema v10.6.5.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class UserDto
     {
-
-        [System.Text.Json.Serialization.JsonPropertyName("email")]
+        [Newtonsoft.Json.JsonProperty("email", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Email { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("password")]
+        [Newtonsoft.Json.JsonProperty("password", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Password { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("firstName")]
+        [Newtonsoft.Json.JsonProperty("firstName", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string FirstName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("lastName")]
+        [Newtonsoft.Json.JsonProperty("lastName", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string LastName { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("role")]
+        [Newtonsoft.Json.JsonProperty("role", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Role { get; set; }
 

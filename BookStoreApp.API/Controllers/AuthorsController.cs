@@ -12,6 +12,8 @@ using System.Collections;
 using BookStoreApp.API.Static;
 using Microsoft.AspNetCore.Authorization;
 using AutoMapper.QueryableExtensions;
+using BookStoreApp.API.Repositories;
+using BookStoreApp.API.Models;
 
 namespace BookStoreApp.API.Controllers
 {

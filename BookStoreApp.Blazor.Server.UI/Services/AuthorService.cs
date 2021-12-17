@@ -18,7 +18,7 @@ namespace BookStoreApp.Blazor.Server.UI.Services
 
         public async Task<Response<int>> Create(AuthorCreateDto author)
         {
-            Response<int> response = new() { Success = true };
+            Response<int> response = new();
 
             try
             {
@@ -35,7 +35,7 @@ namespace BookStoreApp.Blazor.Server.UI.Services
 
         public async Task<Response<int>> Delete(int id)
         {
-            Response<int> response = new() { Success = true };
+            Response<int> response = new();
 
             try
             {
@@ -52,7 +52,7 @@ namespace BookStoreApp.Blazor.Server.UI.Services
 
         public async Task<Response<int>> Edit(int id, AuthorUpdateDto author)
         {
-            Response<int> response = new() { Success = true };
+            Response<int> response = new();
 
             try
             {

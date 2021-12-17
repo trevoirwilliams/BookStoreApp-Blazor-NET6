@@ -24,7 +24,7 @@ else
             <a class="btn btn-dark" href="/authors/create"><span class="oi oi-plus" aria-hidden="true"></span> Create </a>
         </AuthorizeView>
         <br/>
-        <AuthorTable @ref="ChildComponent" Authors="Authors" TotalSize="TotalSize" OnScroll="LoadAuthors"  OnDelete="Delete"/>
+        <AuthorTable Authors="Authors" TotalSize="TotalSize" OnScroll="LoadAuthors"  OnDeleted="Delete"/>
     }
 }
 
@@ -33,7 +33,7 @@ else
     public List<AuthorReadOnlyDto> Authors;
     public int TotalSize { get; set; }
     private Response<AuthorReadOnlyDtoVirtualizeResponse> response = new Response<AuthorReadOnlyDtoVirtualizeResponse> { Success = true };
-    protected AuthorTable ChildComponent;
+    protected Virtualize<AuthorTable> ChildComponent;
 
     protected override async Task OnInitializedAsync()
     {
@@ -53,16 +53,11 @@ else
 
     private async Task Delete(int authorId)
     {
-        var author = Authors.First(q => q.Id == authorId);
-        var confirm = await js.InvokeAsync<bool>("confirm", $"Are You Sure You Want To Delete {author.FirstName} {author.LastName}?");
-        if (confirm)
+        var response = await authorService.Delete(authorId);
+        if (response.Success)
         {
-            var response = await authorService.Delete(authorId);
-            if (response.Success)
-            {
-                ChildComponent.RefreshMe();
-                await OnInitializedAsync();
-            }
+            await ChildComponent?.RefreshDataAsync();
+            StateHasChanged();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Blazored.LocalStorage;
+using BookStoreApp.Blazor.WebAssembly.UI.Models;
 using BookStoreApp.Blazor.WebAssembly.UI.Services.Base;
 
 namespace BookStoreApp.Blazor.WebAssembly.UI.Services
@@ -73,7 +74,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services
             try
             {
                 await GetBearerToken();
-                var data = await client.BooksGETAsync(id);
+                var data = await client.BooksGET2Async(id);
                 response = new Response<BookDetailsDto>
                 {
                     Data = data,
@@ -88,6 +89,28 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services
             return response;
         }
 
+        public async Task<Response<BookReadOnlyDtoVirtualizeResponse>> Get(QueryParameters queryParams)
+        {
+            Response<BookReadOnlyDtoVirtualizeResponse> response;
+
+            try
+            {
+                await GetBearerToken();
+                var data = await client.BooksGETAsync(queryParams.StartIndex, queryParams.PageSize);
+                response = new Response<BookReadOnlyDtoVirtualizeResponse>
+                {
+                    Data = data,
+                    Success = true
+                };
+            }
+            catch (ApiException exception)
+            {
+                response = ConvertApiExceptions<BookReadOnlyDtoVirtualizeResponse>(exception);
+            }
+
+            return response;
+        }
+
         public async Task<Response<List<BookReadOnlyDto>>> Get()
         {
             Response<List<BookReadOnlyDto>> response;
@@ -95,7 +118,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services
             try
             {
                 await GetBearerToken();
-                var data = await client.BooksAllAsync();
+                var data = await client.GetAll2Async();
                 response = new Response<List<BookReadOnlyDto>>
                 {
                     Data = data.ToList(),
@@ -117,7 +140,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services
             try
             {
                 await GetBearerToken();
-                var data = await client.BooksGETAsync(id);
+                var data = await client.BooksGET2Async(id);
                 response = new Response<BookUpdateDto>
                 {
                     Data = mapper.Map<BookUpdateDto>(data),
