@@ -24,8 +24,12 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services.Base
             {
                 return new Response<Guid>() { Message = "The requested item could not be found.", Success = false };
             }
+            if (apiException.StatusCode == 401)
+            {
+                return new Response<Guid>() { Message = "Invalid Credentials, Please Try Again", Success = false };
+            }
 
-            if(apiException.StatusCode >= 200 && apiException.StatusCode <= 299)
+            if (apiException.StatusCode >= 200 && apiException.StatusCode <= 299)
             {
                 return new Response<Guid>() { Message = "Operation Reported Success", Success = true };
             }

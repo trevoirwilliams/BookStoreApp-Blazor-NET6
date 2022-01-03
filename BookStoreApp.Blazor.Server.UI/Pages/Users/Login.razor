@@ -1,6 +1,4 @@
 ﻿@page "/users/login"
-@inject IAuthenticationService authService
-@inject NavigationManager navManager
 
 <h3>Login</h3>
 
@@ -24,31 +22,3 @@
     </EditForm>
 
 </div>
-
-@code {
-    LoginUserDto LoginModel = new LoginUserDto();
-    string message = string.Empty;
-    public async Task HandleLogin()
-    {
-        try
-        {
-            var response = await authService.AuthenticateAsync(LoginModel);
-
-            if (response)
-            {        
-                navManager.NavigateTo("/");
-            }
-            
-            message = "Invalid Credentials, Please Try Again";
-        } 
-        catch(ApiException ex)
-        {
-            if(ex.StatusCode >= 200 && ex.StatusCode <= 299)
-            {
-                
-            }
-
-            message = ex.Response;
-        }   
-    }
-}

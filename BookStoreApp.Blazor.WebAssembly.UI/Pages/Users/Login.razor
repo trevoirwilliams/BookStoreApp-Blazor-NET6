@@ -30,25 +30,13 @@
     string message = string.Empty;
     public async Task HandleLogin()
     {
-        try
-        {
-            var response = await authService.AuthenticateAsync(LoginModel);
+        var response = await authService.AuthenticateAsync(LoginModel);
 
-            if (response)
-            {        
-                navManager.NavigateTo("/");
-            }
-            
-            message = "Invalid Credentials, Please Try Again";
-        } 
-        catch(ApiException ex)
-        {
-            if(ex.StatusCode >= 200 && ex.StatusCode <= 299)
-            {
-                
-            }
-
-            message = ex.Response;
-        }   
+        if (response.Success)
+        {        
+            navManager.NavigateTo("/");
+        }
+        
+        message = response.Message;
     }
 }
