@@ -1,12 +1,12 @@
-name: Build and deploy .NET Core app to Windows WebApp BookStoreAppAPI20211212155712
+name: Build and deploy .NET Core app to Windows WebApp BookStoreAppApi
 on:
   push:
     branches:
     - master
 env:
-  AZURE_WEBAPP_NAME: BookStoreAppAPI20211212155712
+  AZURE_WEBAPP_NAME: BookStoreAppApi
   AZURE_WEBAPP_PACKAGE_PATH: BookStoreApp.API/publish
-  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.BookStoreAppAPI20211212155712_9c8a }}
+  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.BookStoreAppApi_72c6 }}
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 6.0.x
   WORKING_DIRECTORY: BookStoreApp.API
